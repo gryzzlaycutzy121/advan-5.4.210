@@ -15,6 +15,14 @@
 #ifndef __ASSEMBLY__
 
 #include <generated/vdso-offsets.h>
+/*
+ * Fallback: header generated bisa gagal menghasilkan vdso_offset_sigtramp
+ * (mis. saat build me-regenerate vdso-offsets.h tanpa symbol VDSO_sigtramp).
+ * Offset 0x5ec = layout vDSO kernel 5.4.210 T618 (sudah diverifikasi).
+ */
+#ifndef vdso_offset_sigtramp
+#define vdso_offset_sigtramp 0x05ec
+#endif
 #ifdef CONFIG_COMPAT_VDSO
 #include <generated/vdso32-offsets.h>
 #endif

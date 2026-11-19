@@ -85,6 +85,10 @@ jobs:
           tail -60 build_img.log
           ls -la arch/arm64/boot/Image vmlinux Module.symvers 2>&1 || true
           if [ ! -f arch/arm64/boot/Image ]; then echo "FATAL: no Image (RC=$RC)"; tail -140 build_img.log; exit 1; fi
+          echo "=== verifikasi vdso ==="
+          aarch64-linux-gnu-nm arch/arm64/kernel/vdso/vdso.so.dbg 2>/dev/null | grep -i 'VDSO_sigtramp' || echo "WARN: VDSO_sigtramp tidak di vdso.so.dbg (pakai fallback asm/vdso.h)"
+          echo "--- vdso-offsets.h setelah build ---"
+          cat include/generated/vdso-offsets.h 2>&1 || true
 
       - name: Build berry modules (bfkrt_ko, external)
         run: |
