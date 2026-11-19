@@ -1,0 +1,21 @@
+# artefak build kernel
+*.o
+*.ko
+*.cmd
+*.mod
+*.mod.c
+*.order
+*.a
+*.so
+*.symvers
+Module.symvers
+modules.order
+.tmp_*
+out/
+.oot-*
+# private key signing — JANGAN bocor
+certs/signing_key.pem
+certs/signing_key.x509
+certs/x509.genkey
+# tools/bin
+*.exe
