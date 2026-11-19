@@ -54,6 +54,20 @@ jobs:
           echo "=== config efektif ==="
           grep -E '^(CONFIG_MODULE_SIG|CONFIG_KVM|CONFIG_CFI_CLANG|CONFIG_LTO|CONFIG_CLANG_VERSION|CONFIG_VIRTUALIZATION)' .config || true
 
+      - name: Preflight (detect all missing sources at once)
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          set +e
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang-12 LLVM_IAS=1 \
+            LD=ld.lld-12 AR=llvm-ar-12 NM=aarch64-linux-gnu-nm STRIP=llvm-strip-12 \
+            OBJCOPY=llvm-objcopy-12 OBJDUMP=llvm-objdump-12 READELF=llvm-readelf-12 \
+            -n Image > preflight.log 2>&1
+          grep -iE 'No rule to make target' preflight.log | sed 's/.*No rule/No rule/' | sort -u | tee missing.txt
+          N=$(wc -l < missing.txt)
+          echo "MISS_COUNT=$N"
+          if [ "$N" -gt 0 ]; then echo "FATAL: ada $N source hilang (lihat missing.txt)"; tail -60 preflight.log; exit 1; fi
+          echo "PREFLIGHT_OK"
+
       - name: Prebuild vdso (generate include/generated/vdso-offsets.h)
         run: |
           cd "$GITHUB_WORKSPACE"
