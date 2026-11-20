@@ -389,7 +389,7 @@ struct dma_buf *ion_alloc(size_t len, unsigned int heap_id_mask,
 		return ERR_PTR(-ENODEV);
 
 	if (IS_ERR(buffer))
-		return buffer;
+		return ERR_CAST(buffer);
 
 	exp_info.ops = &dma_buf_ops;
 	exp_info.size = buffer->size;

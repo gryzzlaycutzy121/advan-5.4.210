@@ -303,5 +303,3 @@ int ion_page_pool_shrink(struct ion_page_pool *pool, gfp_t gfp_mask,
 			 int nr_to_scan);
 
 #endif /* _ION_H */
-
-#define ION_FLAG_CACHED	(1 << 0)

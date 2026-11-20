@@ -93,7 +93,7 @@ jobs:
           make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang-12 LLVM_IAS=1 \
             LD=ld.lld-12 AR=llvm-ar-12 NM=aarch64-linux-gnu-nm STRIP=llvm-strip-12 \
             OBJCOPY=llvm-objcopy-12 OBJDUMP=llvm-objdump-12 READELF=llvm-readelf-12 \
-            -j1 Image > build_img.log 2>&1
+            -k -j1 Image > build_img.log 2>&1
           RC=$?
           echo "IMG_RC=$RC"
           tail -60 build_img.log
