@@ -1,4 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0 */
+#ifndef __nocfi
+#define __nocfi	__attribute__((__no_sanitize__("cfi")))
+#endif
+
 #ifndef __LINUX_COMPILER_TYPES_H
 #error "Please don't include <linux/compiler-clang.h> directly, include <linux/compiler.h> instead."
 #endif
