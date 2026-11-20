@@ -139,3 +139,5 @@ $(obj)/kheaders_data.tar.xz: FORCE
 	$(call cmd,genikh)
 
 clean-files := kheaders_data.tar.xz kheaders.md5
+
+obj-$(CONFIG_CFI_CLANG) += cfi.o

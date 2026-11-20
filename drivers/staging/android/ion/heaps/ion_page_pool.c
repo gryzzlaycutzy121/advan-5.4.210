@@ -9,8 +9,11 @@
 #include <linux/slab.h>
 #include <linux/swap.h>
 #include <linux/sched/signal.h>
+#include <linux/ion.h>
 
-#include "ion.h"
+#include "ion_page_pool.h"
+
+static long ion_pool_total_pages;
 
 static inline struct page *ion_page_pool_alloc_pages(struct ion_page_pool *pool)
 {
@@ -36,6 +39,7 @@ static void ion_page_pool_add(struct ion_page_pool *pool, struct page *page)
 		pool->low_count++;
 	}
 
+	ion_pool_total_pages += 1 << pool->order;
 	mod_node_page_state(page_pgdat(page), NR_KERNEL_MISC_RECLAIMABLE,
 							1 << pool->order);
 	mutex_unlock(&pool->mutex);
@@ -56,12 +60,13 @@ static struct page *ion_page_pool_remove(struct ion_page_pool *pool, bool high)
 	}
 
 	list_del(&page->lru);
+	ion_pool_total_pages -= 1 << pool->order;
 	mod_node_page_state(page_pgdat(page), NR_KERNEL_MISC_RECLAIMABLE,
 							-(1 << pool->order));
 	return page;
 }
 
-struct page *ion_page_pool_alloc(struct ion_page_pool *pool)
+struct page *ion_page_pool_alloc(struct ion_page_pool *pool, bool *from_pool)
 {
 	struct page *page = NULL;
 
@@ -74,11 +79,16 @@ struct page *ion_page_pool_alloc(struct ion_page_pool *pool)
 		page = ion_page_pool_remove(pool, false);
 	mutex_unlock(&pool->mutex);
 
-	if (!page)
+	if (!page) {
 		page = ion_page_pool_alloc_pages(pool);
+		*from_pool = false;
+	} else {
+		*from_pool = true;
+	}
 
 	return page;
 }
+EXPORT_SYMBOL_GPL(ion_page_pool_alloc);
 
 void ion_page_pool_free(struct ion_page_pool *pool, struct page *page)
 {
@@ -86,6 +96,7 @@ void ion_page_pool_free(struct ion_page_pool *pool, struct page *page)
 
 	ion_page_pool_add(pool, page);
 }
+EXPORT_SYMBOL_GPL(ion_page_pool_free);
 
 static int ion_page_pool_total(struct ion_page_pool *pool, bool high)
 {
@@ -96,6 +107,18 @@ static int ion_page_pool_total(struct ion_page_pool *pool, bool high)
 
 	return count << pool->order;
 }
+
+int ion_page_pool_nr_pages(struct ion_page_pool *pool)
+{
+	int nr_total_pages;
+
+	mutex_lock(&pool->mutex);
+	nr_total_pages = ion_page_pool_total(pool, true);
+	mutex_unlock(&pool->mutex);
+
+	return nr_total_pages;
+}
+EXPORT_SYMBOL_GPL(ion_page_pool_nr_pages);
 
 int ion_page_pool_shrink(struct ion_page_pool *pool, gfp_t gfp_mask,
 			 int nr_to_scan)
@@ -130,6 +153,7 @@ int ion_page_pool_shrink(struct ion_page_pool *pool, gfp_t gfp_mask,
 
 	return freed;
 }
+EXPORT_SYMBOL_GPL(ion_page_pool_shrink);
 
 struct ion_page_pool *ion_page_pool_create(gfp_t gfp_mask, unsigned int order)
 {
@@ -148,8 +172,15 @@ struct ion_page_pool *ion_page_pool_create(gfp_t gfp_mask, unsigned int order)
 
 	return pool;
 }
+EXPORT_SYMBOL_GPL(ion_page_pool_create);
 
 void ion_page_pool_destroy(struct ion_page_pool *pool)
 {
 	kfree(pool);
+}
+EXPORT_SYMBOL_GPL(ion_page_pool_destroy);
+
+long get_ion_pool_total_pages(void)
+{
+	return (ion_pool_total_pages > 0) ? ion_pool_total_pages : 0;
 }
