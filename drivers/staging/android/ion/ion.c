@@ -9,6 +9,7 @@
 #include <linux/device.h>
 #include <linux/dma-buf.h>
 #include <linux/dma-map-ops.h>
+#include <linux/scatterlist.h>
 #include <linux/err.h>
 #include <linux/export.h>
 #include <linux/file.h>
@@ -357,7 +358,55 @@ static const struct dma_buf_ops dma_buf_ops = {
 	.unmap = ion_dma_buf_kunmap,
 };
 
-static int ion_alloc(size_t len, unsigned int heap_id_mask, unsigned int flags)
+/* berry: public ion_alloc (vendor UMS512 signature) */
+struct dma_buf *ion_alloc(size_t len, unsigned int heap_id_mask,
+			  unsigned int flags)
+{
+	struct ion_device *dev = internal_dev;
+	struct ion_buffer *buffer = NULL;
+	struct ion_heap *heap;
+	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
+	struct dma_buf *dmabuf;
+
+	pr_debug("%s: len %zu heap_id_mask %u flags %x\n", __func__,
+		 len, heap_id_mask, flags);
+	len = PAGE_ALIGN(len);
+
+	if (!len)
+		return ERR_PTR(-EINVAL);
+
+	down_read(&dev->lock);
+	plist_for_each_entry(heap, &dev->heaps, node) {
+		if (!((1 << heap->id) & heap_id_mask))
+			continue;
+		buffer = ion_buffer_create(heap, dev, len, flags);
+		if (!IS_ERR(buffer))
+			break;
+	}
+	up_read(&dev->lock);
+
+	if (!buffer)
+		return ERR_PTR(-ENODEV);
+
+	if (IS_ERR(buffer))
+		return buffer;
+
+	exp_info.ops = &dma_buf_ops;
+	exp_info.size = buffer->size;
+	exp_info.flags = O_RDWR;
+	exp_info.priv = buffer;
+
+	dmabuf = dma_buf_export(&exp_info);
+	if (IS_ERR(dmabuf)) {
+		_ion_buffer_destroy(buffer);
+		return dmabuf;
+	}
+
+	return dmabuf;
+}
+EXPORT_SYMBOL(ion_alloc);
+
+static int ion_alloc_fd(size_t len, unsigned int heap_id_mask, unsigned int flags)
 {
 	struct ion_device *dev = internal_dev;
 	struct ion_buffer *buffer = NULL;
@@ -413,7 +462,6 @@ static int ion_alloc(size_t len, unsigned int heap_id_mask, unsigned int flags)
 
 	return fd;
 }
-EXPORT_SYMBOL(ion_alloc);
 
 static int ion_query_heaps(struct ion_heap_query *query)
 {
@@ -511,7 +559,7 @@ static long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	{
 		int fd;
 
-		fd = ion_alloc(data.allocation.len,
+		fd = ion_alloc_fd(data.allocation.len,
 			       data.allocation.heap_id_mask,
 			       data.allocation.flags);
 		if (fd < 0)
@@ -673,18 +721,22 @@ static int ion_device_create(void)
 subsys_initcall(ion_device_create);
 
 /* berry: __ion_device_add_heap + ion_device_remove_heap (vendor UMS512) */
-void __ion_device_add_heap(struct ion_heap *heap, struct module *owner)
+int __ion_device_add_heap(struct ion_heap *heap, struct module *owner)
 {
+	if (!heap)
+		return -EINVAL;
 	heap->owner = owner;
 	ion_device_add_heap(heap);
+	return 0;
 }
 EXPORT_SYMBOL(__ion_device_add_heap);
 
 void ion_device_remove_heap(struct ion_heap *heap)
 {
-	struct ion_device *dev = heap->dev;
-	if (!heap || !dev)
+	struct ion_device *dev;
+	if (!heap || !heap->dev)
 		return;
+	dev = heap->dev;
 	down_write(&dev->lock);
 	plist_del(&heap->node, &dev->heaps);
 	dev->heap_cnt--;
