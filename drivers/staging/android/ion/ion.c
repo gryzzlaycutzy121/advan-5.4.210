@@ -8,7 +8,7 @@
 #include <linux/debugfs.h>
 #include <linux/device.h>
 #include <linux/dma-buf.h>
-#include <linux/dma-map-ops.h>
+#include <linux/dma-noncoherent.h>
 #include <linux/scatterlist.h>
 #include <linux/err.h>
 #include <linux/export.h>
