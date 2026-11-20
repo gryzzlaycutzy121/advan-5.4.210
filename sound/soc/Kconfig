@@ -32,6 +32,7 @@ config SND_SOC_GENERIC_DMAENGINE_PCM
 
 config SND_SOC_COMPRESS
 	bool
+	default y
 	select SND_COMPRESS_OFFLOAD
 
 config SND_SOC_TOPOLOGY

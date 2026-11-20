@@ -30,6 +30,7 @@ config DRM_MIPI_DBI
 
 config DRM_MIPI_DSI
 	bool
+	default y
 	depends on DRM
 
 config DRM_DP_AUX_CHARDEV
@@ -72,6 +73,7 @@ config DRM_DEBUG_SELFTEST
 
 config DRM_KMS_HELPER
 	tristate
+	default DRM
 	depends on DRM
 	help
 	  CRTC helpers for KMS drivers.
@@ -174,6 +176,7 @@ config DRM_VRAM_HELPER
 
 config DRM_GEM_CMA_HELPER
 	bool
+	default y
 	depends on DRM
 	help
 	  Choose this if you need the GEM CMA helper functions

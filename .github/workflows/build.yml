@@ -53,6 +53,8 @@ jobs:
             olddefconfig
           echo "=== config efektif ==="
           grep -E '^(CONFIG_MODULE_SIG|CONFIG_KVM|CONFIG_CFI_CLANG|CONFIG_LTO|CONFIG_CLANG_VERSION|CONFIG_VIRTUALIZATION)' .config || true
+          echo "=== config grup DRM/PHY/DOMAIN/SOC (verifikasi parity) ==="
+          grep -E '^CONFIG_(DRM|DRM_KMS_HELPER|DRM_PANEL|DRM_MIPI_DSI|DRM_GEM_CMA_HELPER|USB_PHY|PM_GENERIC_DOMAINS|SND_SOC_COMPRESS|TRACE_GPU_MEM|ANDROID_VENDOR_HOOKS|CFI_CLANG|LTO_CLANG|MODVERSIONS|MODULE_SIG|SMP|PREEMPT|LOCALVERSION)=' .config || true
 
       - name: Preflight (detect all missing sources at once)
         run: |

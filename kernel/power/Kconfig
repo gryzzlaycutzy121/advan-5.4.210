@@ -276,6 +276,7 @@ config PM_CLK
 
 config PM_GENERIC_DOMAINS
 	bool
+	default y
 	depends on PM
 
 config WQ_POWER_EFFICIENT_DEFAULT
