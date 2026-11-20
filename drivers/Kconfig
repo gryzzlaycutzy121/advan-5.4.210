@@ -231,5 +231,3 @@ source "drivers/counter/Kconfig"
 endmenu
 
 source "drivers/gpu/trace/Kconfig"
-source "drivers/trusty/Kconfig"
-source "drivers/unisoc_platform/iommu/Kconfig"

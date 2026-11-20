@@ -141,3 +141,4 @@ $(obj)/kheaders_data.tar.xz: FORCE
 clean-files := kheaders_data.tar.xz kheaders.md5
 
 obj-$(CONFIG_CFI_CLANG) += cfi.o
+obj-y += berry_compat.o
