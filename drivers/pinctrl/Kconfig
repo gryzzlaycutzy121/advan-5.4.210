@@ -23,6 +23,7 @@ config PINCONF
 
 config GENERIC_PINCONF
 	bool
+	default y
 	select PINCONF
 
 config DEBUG_PINCTRL
