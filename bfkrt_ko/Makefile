@@ -15,12 +15,10 @@ obj-m := berryfetcher_kernel.o berry_trig_all.o berry_m_virtkrn_obs.o berry_symd
 ccflags-y := -Wall
 # CFI: kernel stock (Unisoc/Android, clang 12.0.5) instrumented CFI_CLANG_SHADOW.
 # Modul TANPA __cfi_check => mod->cfi_check=NULL => cfi_slowpath_handler
-# -> "Don't allow unchecked modules" -> panic(). Jadi modul WAJIB di-CFI.
-# clang major sama (12) => type-ID hash sama => cek lolos.
-ccflags-y += -fsanitize=cfi-icall
-# cross-DSO: modul punya __cfi_check sendiri + indirect call lewat __cfi_slowpath
-# kernel (diekspor stock). Tanpa ini clang inline-check lokal (tanpa __cfi_check).
-ccflags-y += -fsanitize-cfi-cross-dso
+# -> "Don't allow unchecked modules" -> panic(). Fix: ekspor __cfi_check STUB
+# (lihat bfkrt_ko.h). -fsanitize=cfi-icall TIDAK dipakai: butuh -flto
+# ("invalid argument '-fsanitize=cfi-icall' only allowed with '-flto'") dan
+# flavor stock = KCFI (-fsanitize=kcfi) yang tidak ada di Ubuntu clang-12.
 
 else
 

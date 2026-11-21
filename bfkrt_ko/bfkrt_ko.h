@@ -36,4 +36,26 @@ static inline const char *bfkrt_task_name(struct task_struct *t)
 	return t ? t->comm : "?";
 }
 
+/*
+ * CFI stub (kernel stock = Android CFI_CLANG_SHADOW / KCFI, clang 12.0.5).
+ *
+ * Kernel memanggil mod->cfi_check pada SETIAP indirect-call ke fungsi modul
+ * (termasuk cleanup_module saat rmmod). Tanpa simbol __cfi_check global,
+ * mod->cfi_check = NULL -> kernel/cfi.c cfi_slowpath_handler ->
+ * find_module_cfi_check -> NULL -> handle_cfi_failure -> panic()
+ * (terbukti: "CFI failure (target: cleanup_module+0x0/0xcec [mod])").
+ *
+ * Stub di bawah membuat mod->cfi_check terisi (lookup by name "__cfi_check"),
+ * sehingga unload/rmmod tidak lagi panic. Konsekuensi: call-site kernel TIDAK
+ * memvalidasi type-hash utk call INTO modul ini (dianggap lulus). Memang itu
+ * tujuannya: modul analisis di-load di kernel stock yang hash-nya tidak kita
+ * kendalikan. Tidak dipakai -fsanitize=cfi-icall (butuh -flto + clang KCFI
+ * yang tidak ada di Ubuntu clang-12).
+ */
+bool __cfi_check(uint64_t id, void *ptr, void *diag)
+{
+	(void)id; (void)ptr; (void)diag;
+	return true;
+}
+
 #endif /* BFKRT_KO_H */
