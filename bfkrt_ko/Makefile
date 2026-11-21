@@ -13,6 +13,9 @@ ifneq ($(KERNELRELEASE),)
 
 obj-m := berryfetcher_kernel.o berry_trig_all.o berry_m_virtkrn_obs.o berry_symdump.o berry_lkvm.o
 ccflags-y := -Wall
+# -Wno-error: kernel build menambah -Werror; modul diagnosa lebih baik
+# warning (mis. prototype kprobe) tidak menggagalkan artifact.
+ccflags-y += -Wno-error
 # CFI: kernel stock (Unisoc/Android, clang 12.0.5) instrumented CFI_CLANG_SHADOW.
 # Modul TANPA __cfi_check => mod->cfi_check=NULL => cfi_slowpath_handler
 # -> "Don't allow unchecked modules" -> panic(). Fix: ekspor __cfi_check STUB

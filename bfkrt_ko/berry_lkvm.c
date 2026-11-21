@@ -75,10 +75,9 @@ static int run_pre(struct kprobe *p, struct pt_regs *regs)
 	lk_push(EV_RUN_ENTER, 0);
 	return 0;
 }
-static int run_post(struct kprobe *p, struct pt_regs *regs, unsigned long flags)
+static void run_post(struct kprobe *p, struct pt_regs *regs, unsigned long flags)
 {
 	lk_push(EV_RUN_EXIT, 0);
-	return 0;
 }
 /* long kvm_vm_ioctl(struct file *filp, unsigned int ioctl, unsigned long arg) -- x1 = cmd */
 static int vm_pre(struct kprobe *p, struct pt_regs *regs)
