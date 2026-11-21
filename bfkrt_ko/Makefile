@@ -11,7 +11,7 @@
 #   make KDIR=/e/linux-5.4.210 KBUILD_MODPOST_WARN=1
 ifneq ($(KERNELRELEASE),)
 
-obj-m := berryfetcher_kernel.o berry_trig_all.o berry_m_virtkrn_obs.o
+obj-m := berryfetcher_kernel.o berry_trig_all.o berry_m_virtkrn_obs.o berry_symdump.o berry_lkvm.o
 ccflags-y := -Wall
 
 else

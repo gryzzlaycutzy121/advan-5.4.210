@@ -25,6 +25,8 @@
 #define BFKRT_PROC_SYM   "bfkrt_sym"
 #define BFKRT_PROC_TRIG  "bfkrt_trig"
 #define BFKRT_PROC_OBS   "bfkrt_obs"
+#define BFKRT_PROC_SYMD  "bfkrt_syms"
+#define BFKRT_PROC_LKVM  "bfkrt_lkvm"
 
 /* ukuran ring: 4096 entri x 96 byte = 384 KiB, muat di .bss modul */
 #define BFKRT_RING 4096
